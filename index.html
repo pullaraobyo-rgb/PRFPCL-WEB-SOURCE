@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PRFPCL - Pullarao Farmer Producer Company Limited</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #e9fbe9 0%, #c7ecd0 100%);
+      color: #234726;
+    }
+    header {
+      background: #2c6e49;
+      color: #fff;
+      padding: 32px 0 20px 0;
+      text-align: center;
+      box-shadow: 0 2px 16px rgba(44,110,73,0.13);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 3em;
+      letter-spacing: 2px;
+      font-weight: bold;
+      font-family: 'Segoe UI Semibold', 'Arial', sans-serif;
+      text-shadow: 0 4px 32px #184b2e44;
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 220px;
+      height: 100%;
+      background: linear-gradient(135deg, #2c6e49 60%, #b8e6c1 100%);
+      box-shadow: 2px 0 18px 0 rgba(44,110,73,0.10);
+      padding-top: 72px;
+      transition: transform 0.4s cubic-bezier(.4,1,.5,1.1), opacity 0.4s;
+      z-index: 100;
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .sidebar.closed {
+      opacity: 0;
+      transform: translateX(-260px);
+      pointer-events: none;
+    }
+    .sidebar nav {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin: 0 0 0 16px;
+    }
+    .sidebar a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      margin: 0;
+      padding: 13px 22px 13px 18px;
+      border-radius: 12px 28px 28px 12px;
+      background: linear-gradient(90deg, #2c6e49 80%, #b8e6c1 100%);
+      margin-bottom: 12px;
+      font-size: 1.15em;
+      letter-spacing: 0.6px;
+      opacity: 0.95;
+      transition: background 0.22s, color 0.22s, opacity 0.22s, left 0.18s;
+      position: relative;
+      left: 0;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(44,110,73,0.09);
+    }
+    .sidebar a:hover, .sidebar a.active {
+      background: linear-gradient(90deg, #1d5930 85%, #7acf97 100%);
+      color: #f2ffe9;
+      opacity: 1;
+      left: 10px;
+      box-shadow: 0 4px 16px 0 #184b2e33;
+    }
+    .menu-toggle {
+      position: fixed;
+      top: 26px;
+      left: 20px;
+      z-index: 150;
+      background: #25803c;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 1.8em;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(44,110,73,0.10);
+      transition: background 0.2s;
+    }
+    .menu-toggle:hover {
+      background: #1d5930;
+    }
+    @media (max-width: 1100px) {
+      .sidebar { width: 150px; padding-top: 54px; }
+      .sidebar a { font-size: 1.03em; padding: 11px 10px 11px 8px;}
+      .menu-toggle { left: 6px; top: 15px;}
+    }
+    @media (max-width: 700px) {
+      .sidebar { width: 100vw; height: auto; padding-top: 62px; left: 0; top: 0; border-radius: 0 0 20px 20px;}
+      .sidebar nav { flex-direction: row; flex-wrap: wrap; gap: 0;}
+      .sidebar a { border-radius: 6px; margin: 7px 6px 7px 0; left: 0;}
+    }
+    .main-content {
+      margin-left: 260px;
+      transition: margin-left 0.4s cubic-bezier(.4,1,.5,1.1);
+      min-height: 100vh;
+      background: none;
+    }
+    .sidebar.closed ~ .main-content {
+      margin-left: 40px;
+    }
+    @media (max-width: 1100px) {
+      .main-content { margin-left: 170px;}
+      .sidebar.closed ~ .main-content { margin-left: 10px;}
+    }
+    @media (max-width: 700px) {
+      .main-content, .sidebar.closed ~ .main-content { margin-left: 0; margin-top: 100px;}
+    }
+    .section, .hero {
+      max-width: 900px;
+      margin: 60px auto 40px auto;
+      background: #f8fcf9;
+      box-shadow: 0 4px 32px 0 rgba(44,110,73,0.10);
+      border-radius: 22px;
+      padding: 40px 6vw 40px 6vw;
+      display: none;
+      opacity: 0;
+      transform: translateY(50px);
+      transition: opacity 0.8s, transform 0.7s;
+    }
+    .section.visible, .hero.visible {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .hero {
+      background: linear-gradient(135deg, #dafbe2 0%, #f8fcf9 100%);
+      box-shadow: 0 8px 44px 0 rgba(44,110,73,0.11);
+      border-radius: 0 0 38px 38px;
+      margin-top: 30px;
+      margin-bottom: 40px;
+      text-align: center;
+      display: block;
+    }
+    .hero h2 {
+      color: #2c6e49;
+      font-size: 2.6em;
+      margin-bottom: 18px;
+      letter-spacing: 1.2px;
+      font-weight: 700;
+      text-shadow: 0 2px 12px #bfeac4a0;
+      font-family: 'Segoe UI Semibold', 'Arial', sans-serif;
+    }
+    .hero p {
+      font-size: 1.3em;
+      color: #184b2e;
+      margin-bottom: 38px;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.6;
+      font-weight: 400;
+      letter-spacing: 0.2px;
+    }
+    .home-card {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 6px 30px 0 rgba(44,110,73,0.11);
+      padding: 38px 32px 30px 32px;
+      margin-bottom: 38px;
+      opacity: 0;
+      transform: translateY(50px);
+      transition: opacity 1s, transform 0.9s;
+      display: block;
+    }
+    .home-card.visible { opacity: 1; transform: translateY(0);}
+    .home-card h3 {
+      color: #2c6e49;
+      margin-top: 0;
+      font-size: 1.8em;
+      margin-bottom: 17px;
+      font-weight: 700;
+      letter-spacing: 0.7px;
+      font-family: 'Segoe UI Semibold', Arial, sans-serif;
+      text-shadow: 0 2px 16px #bfeac4a0;
+    }
+    .home-card ul, .home-card p {
+      color: #1e4327;
+      font-size: 1.1em;
+      margin: 0;
+      padding-left: 26px;
+      line-height: 1.7;
+      font-weight: 400;
+    }
+    .home-card ul { padding-left: 32px; }
+    .section h2 {
+      color: #2c6e49;
+      margin-top: 0;
+      font-size: 2.2em;
+      margin-bottom: 30px;
+      font-weight: 700;
+      text-shadow: 0 2px 16px #bfeac4a0;
+    }
+    .section ul, .section p {
+      font-size: 1.15em;
+      color: #1e4327;
+      line-height: 1.7;
+      margin-bottom: 18px;
+      font-weight: 400;
+    }
+    .section ul { padding-left: 32px; }
+    .weather-box {
+      background: #e9fbe9;
+      border-radius: 14px;
+      box-shadow: 0 0 8px rgba(44,110,73,0.08);
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      padding: 22px 22px;
+      margin-bottom: 26px;
+      font-size: 1.12em;
+    }
+    .weather-box img { width: 68px; }
+    .weather-box .info { font-size: 1.09em; }
+    .weather-form { margin-bottom: 16px; }
+    /* Weather App Styles */
+    .autocomplete-items {
+      position: absolute;
+      border: 1px solid #b9e1c7;
+      border-top: none;
+      z-index: 999;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #fff;
+      max-height: 210px;
+      overflow-y: auto;
+      box-shadow: 0 4px 16px #b9e1c7;
+      border-radius: 0 0 8px 8px;
+      font-size: 1em;
+      margin-top: -1px;
+    }
+    .autocomplete-item {
+      padding: 12px 20px;
+      cursor: pointer;
+      border-bottom: 1px solid #e9fbe9;
+      background: #fff;
+      color: #184b2e;
+      transition: background 0.15s;
+    }
+    .autocomplete-item:last-child { border-bottom: none; }
+    .autocomplete-item:hover,
+    .autocomplete-active {
+      background: #c7ecd0;
+      color: #123b1e;
+    }
+    .saved-locations {
+      margin: 22px 0 22px 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .saved-location-btn {
+      display: inline-block;
+      background: #dafbe2;
+      color: #184b2e;
+      border: 1px solid #b9e1c7;
+      border-radius: 6px;
+      padding: 8px 18px;
+      font-size: 1.08em;
+      margin-bottom: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-right: 6px;
+      position: relative;
+    }
+    .saved-location-btn:hover {
+      background: #b8e6c1;
+      color: #1d5930;
+    }
+    .remove-saved {
+      color: #b22;
+      font-size: 1.1em;
+      margin-left: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: color 0.2s;
+      position: absolute;
+      top: 2px;
+      right: 7px;
+    }
+    .remove-saved:hover { color: #e44; }
+    form label { display: block; margin: 18px 0 8px 0; font-weight: bold; font-size: 1.08em;}
+    form input, form select, form textarea {
+      width: 100%;
+      padding: 13px 18px;
+      font-size: 1.07em;
+      border: 1px solid #bbb;
+      border-radius: 8px;
+      margin-bottom: 5px;
+      resize: vertical;
+      font-family: inherit;
+    }
+    form textarea { height: 110px; }
+    form button[type="submit"] {
+      margin-top: 18px;
+      background: #2c6e49;
+      color: white;
+      font-weight: bold;
+      padding: 14px 28px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 1.07em;
+      transition: background 0.2s;
+      letter-spacing: 0.2px;
+    }
+    form button[type="submit"]:hover { background: #1d5930; }
+    .form-title { font-weight: bold; color: #2c6e49; font-size: 1.14em; margin-bottom: 12px; }
+    footer {
+      background: #2c6e49;
+      color: #fff;
+      text-align: center;
+      padding: 22px 12px;
+      border-radius: 14px 14px 0 0;
+      font-size: 1em;
+      margin-top: 90px;
+      letter-spacing: 0.5px;
+      font-family: 'Segoe UI Semibold', Arial, sans-serif;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(60px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    @media (max-width: 900px) {
+      .section, .hero { padding-left: 2vw; padding-right: 2vw; }
+      .home-card { padding: 25px 7px 18px 7px;}
+    }
+    @media (max-width: 700px) {
+      .section, .hero { padding: 10px 2vw; margin: 18px 0; }
+      .home-card { padding: 14px 2vw 14px 2vw;}
+      header h1 { font-size: 2.3em; }
+    }
+  </style>
+</head>
+<body>
+  <button class="menu-toggle" id="menuToggle" title="Menu">&#9776;</button>
+  <aside class="sidebar" id="sidebarMenu">
+    <nav>
+      <a href="#" class="active" data-section="home">Home</a>
+      <a href="#" data-section="about">About</a>
+      <a href="#" data-section="services">Services</a>
+      <a href="#" data-section="achievements">Achievements</a>
+      <a href="#" data-section="weather">Weather</a>
+      <a href="#" data-section="enquiry">Enquiry</a>
+      <a href="#" data-section="contact">Contact</a>
+    </nav>
+  </aside>
+  <div class="main-content" id="mainContent">
+    <header>
+      <h1>PRFPCL</h1>
+    </header>
+    <!-- Home Section -->
+    <div id="home" class="hero section visible">
+      <h2>Empowering Farmers. Sustaining Rural Growth.</h2>
+      <p>
+        <strong>Pullarao Farmer Producer Company Limited (PRFPCL)</strong> is a pioneering, farmer-led producer company committed to transforming the landscape of Indian agriculture. Through innovation, collective action, and unwavering integrity, we empower rural communities, promote sustainable farming, and unlock opportunities for prosperity and growth across India.
+      </p>
+      <div class="home-card">
+        <h3>About PRFPCL</h3>
+        <p>
+          At PRFPCL, our mission is to bridge the gap between rural farmers and national & global markets. We champion inclusive growth, sustainable agriculture, and transparent business practices, ensuring every member farmer benefits from our cooperative strength and expertise.
+        </p>
+      </div>
+      <div class="home-card">
+        <h3>Our Agri Services</h3>
+        <ul>
+          <li>Premium quality seeds & planting materials (import, export, and local supply)</li>
+          <li>Fertilizers, pesticides, and advanced agrochemicals for healthy crops</li>
+          <li>Modern farm machinery and affordable rental services</li>
+          <li>Agri commodities trade: grains, pulses, oilseeds and more</li>
+          <li>Weather & crop advisory, digital alerts, and expert support</li>
+          <li>Farmer training, capacity-building programs, and knowledge workshops</li>
+          <li>Farmer data management, analytics, and personalized insights</li>
+          <li>Allied sectors: irrigation, packaging, post-harvest, logistics</li>
+        </ul>
+      </div>
+      <div class="home-card">
+        <h3>Achievements</h3>
+        <ul>
+          <li>2500+ member farmers empowered and trained</li>
+          <li>200+ tons of high-quality seeds supplied annually</li>
+          <li>Exports to over 7 countries worldwide</li>
+          <li>Strategic partnerships with major agri brands & government</li>
+          <li>Recognized leader in sustainable rural development</li>
+          <li>Multiple national awards for innovation, impact, and fair trade</li>
+        </ul>
+      </div>
+    </div>
+    <!-- About Section -->
+    <div id="about" class="section">
+      <h2>About PRFPCL</h2>
+      <p>
+        <b>Pullarao Farmer Producer Company Limited (PRFPCL)</b> is a collective of passionate farmers, agri-entrepreneurs, and rural innovators. Established to uplift rural livelihoods, PRFPCL delivers sustainable solutions, market access, and technical expertise to thousands of farmers across India. Our vision is to enable every rural producer to thrive in a fair, transparent, and technology-driven ecosystem.
+      </p>
+      <div class="home-card">
+        <ul>
+          <li>Farmer-owned, farmer-driven model for true empowerment</li>
+          <li>Strong focus on sustainability, digitalization, and ethical trade</li>
+          <li>Continuous capacity-building and knowledge transfer</li>
+        </ul>
+      </div>
+    </div>
+    <!-- Services Section -->
+    <div id="services" class="section">
+      <h2>Our Agri Services</h2>
+      <div class="home-card">
+        <ul>
+          <li><b>Seeds:</b> Quality-certified, climate-adaptive seeds for maximum yield, including import/export facilitation.</li>
+          <li><b>Agrochemicals:</b> Safe and effective pesticides, fungicides, and herbicides to protect your crops.</li>
+          <li><b>Fertilizers:</b> Balanced nutrition for healthy, sustainable farming, including organic solutions.</li>
+          <li><b>Farm Machinery:</b> Modern equipment and rental services for efficient, affordable operations.</li>
+          <li><b>Agri Commodities Trade:</b> Fair, transparent platforms for grains, pulses, oilseeds, and more.</li>
+          <li><b>Weather Advisory:</b> Real-time weather updates and expert crop advice for timely decisions.</li>
+          <li><b>Farmer Data & Insights:</b> Digital recordkeeping, analytics, and personalized guidance.</li>
+          <li><b>Allied Sectors:</b> Irrigation, post-harvest, packaging, storage, logistics, and more.</li>
+          <li><b>Training & Workshops:</b> Ongoing education, demonstrations, and capacity-building for all members.</li>
+        </ul>
+      </div>
+    </div>
+    <!-- Achievements Section -->
+    <div id="achievements" class="section">
+      <h2>Key Achievements</h2>
+      <div class="home-card">
+        <ul>
+          <li><b>2500+ member farmers</b> supported and connected to premium markets</li>
+          <li><b>200+ tons of seeds</b> supplied annually with a focus on quality and traceability</li>
+          <li><b>Export reach:</b> 7+ countries and growing</li>
+          <li><b>Partnered with:</b> Leading agri brands, government initiatives, and research institutions</li>
+          <li><b>Awards:</b> Recognized for sustainable rural development, fair trade, and innovation</li>
+          <li><b>Community Impact:</b> Improved incomes, digital literacy, and rural entrepreneurship</li>
+        </ul>
+      </div>
+    </div>
+    <!-- Weather Section - Weather App Style -->
+    <div id="weather" class="section">
+      <h2>Weather Application</h2>
+      <div style="max-width:440px;margin:auto;">
+        <form class="weather-form" id="weatherAppSearch" autocomplete="off" style="position:relative;">
+          <label for="weatherCity">Search location:</label>
+          <div style="position:relative;">
+            <input type="text" id="weatherCity" name="city" placeholder="Search city, village..." required autocomplete="off" />
+            <div id="autocomplete-list" class="autocomplete-items"></div>
+          </div>
+          <button type="submit">Get Weather</button>
+          <button type="button" onclick="saveLocation()" style="margin-left:8px;">★ Save</button>
+        </form>
+        <div class="saved-locations" id="savedLocations"></div>
+      </div>
+      <div style="margin:32px auto 0 auto;max-width:700px;" id="weatherContent"></div>
+    </div>
+    <!-- Enquiry Section -->
+    <div id="enquiry" class="section">
+      <h2>Enquiry Form</h2>
+      <form id="enquiryForm" onsubmit="return submitForm('enquiryForm')">
+        <div class="form-title">Farmer/Buyer Enquiry</div>
+        <label for="enqName">Full Name*</label>
+        <input type="text" id="enqName" name="name" required placeholder="Your full name" />
+        <label for="enqEmail">Email*</label>
+        <input type="email" id="enqEmail" name="email" required placeholder="Your email address" />
+        <label for="enqPhone">Phone Number*</label>
+        <input type="tel" id="enqPhone" name="phone" required placeholder="Your contact number" />
+        <label for="enqType">I am a*</label>
+        <select id="enqType" name="type" required>
+          <option value="">--Select--</option>
+          <option value="Farmer">Farmer</option>
+          <option value="International Buyer">International Buyer</option>
+        </select>
+        <label for="enqLocation">Village/District/Country</label>
+        <input type="text" id="enqLocation" name="location" placeholder="Your village, district or country" />
+        <label for="enqProduct">Interested Product/Service*</label>
+        <select id="enqProduct" name="product" required>
+          <option value="">--Select--</option>
+          <option value="Seeds">Seeds</option>
+          <option value="Agrochemicals">Agrochemicals</option>
+          <option value="Fertilizers">Fertilizers</option>
+          <option value="Pesticides">Pesticides</option>
+          <option value="Farm Machines">Farm Machines</option>
+          <option value="Agri Commodities">Agri Commodities</option>
+          <option value="Allied Sectors">Allied Sectors</option>
+        </select>
+        <label for="enqMessage">Additional Details</label>
+        <textarea id="enqMessage" name="message" placeholder="Write any details or questions..."></textarea>
+        <button type="submit">Submit Enquiry</button>
+      </form>
+    </div>
+    <!-- Contact Section -->
+    <div id="contact" class="section">
+      <h2>Contact Us</h2>
+      <p>
+        <b>Email:</b> <a href="mailto:Pullaraofarmerproducer@gmail.com">Pullaraofarmerproducer@gmail.com</a><br />
+        <b>Phone:</b> +91-XXXXXXXXXX<br />
+        <b>Address:</b> D no 1-102/1, Main Road, Gollapudi Post and Village,<br>
+        Wyra Mandal, Khammam District, Telangana-507165, India
+      </p>
+    </div>
+    <footer>
+      &copy; 2025 PRFPCL - Pullarao Farmer Producer Company Limited. All rights reserved.
+    </footer>
+  </div>
+  <script>
+    // Sidebar menu toggle
+    const sidebar = document.getElementById('sidebarMenu');
+    const menuToggle = document.getElementById('menuToggle');
+    menuToggle.addEventListener('click', function() {
+      sidebar.classList.toggle('closed');
+    });
+
+    // Section switcher with fade animation
+    const sections = document.querySelectorAll('.section, .hero');
+    document.querySelectorAll('.sidebar nav a').forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelectorAll('.sidebar nav a').forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+        let sectionId = this.getAttribute('data-section');
+        sections.forEach(sec => sec.classList.remove('visible'));
+        let showSection = document.getElementById(sectionId);
+        if (showSection) {
+          showSection.classList.add('visible');
+          window.scrollTo({top: 0, behavior: 'smooth' });
+          setTimeout(fadeCardsOnScroll, 200);
+        }
+      });
+    });
+
+    // Fade-in cards on scroll
+    function fadeCardsOnScroll() {
+      document.querySelectorAll('.home-card').forEach(card => {
+        const rect = card.getBoundingClientRect();
+        if (rect.top < window.innerHeight * 0.93) {
+          card.classList.add('visible');
+        }
+      });
+    }
+    window.addEventListener('scroll', fadeCardsOnScroll);
+    window.addEventListener('resize', fadeCardsOnScroll);
+    window.addEventListener('DOMContentLoaded', () => {
+      fadeCardsOnScroll();
+      sections.forEach(sec => sec.classList.remove('visible'));
+      document.getElementById('home').classList.add('visible');
+      setTimeout(fadeCardsOnScroll, 200);
+      renderSavedLocations();
+    });
+
+    // Weather Application Section
+    const apiKey = "11105720523b9920d8d4451954d400c2";
+    // Autocomplete using GeoDB Cities API
+    function autocomplete(inp, listId) {
+      inp.addEventListener("input", function(e) {
+        let val = this.value;
+        closeAllLists();
+        if (!val || val.length < 2) { return false;}
+        let list = document.getElementById(listId);
+        fetch(`https://wft-geo-db.p.rapidapi.com/v1/geo/cities?limit=6&namePrefix=${encodeURIComponent(val)}`, {
+          headers: {
+            'X-RapidAPI-Key': 'be9b7b1b85msh6c5a2c7cfa81e3bp1a2e3ajsn8e7c6fc5e7f3',
+            'X-RapidAPI-Host': 'wft-geo-db.p.rapidapi.com'
+          }
+        })
+        .then(resp => resp.json())
+        .then(data => {
+          if (!data.data) return;
+          list.innerHTML = "";
+          data.data.forEach(city => {
+            let item = document.createElement("div");
+            item.className = "autocomplete-item";
+            item.innerHTML = `<span>${city.city}, ${city.region}, ${city.country}</span>`;
+            item.addEventListener("click", function(e) {
+              inp.value = `${city.city}`;
+              closeAllLists();
+            });
+            list.appendChild(item);
+          });
+        });
+      });
+      function closeAllLists(elmnt) {
+        let items = document.getElementsByClassName("autocomplete-items");
+        for (let i = 0; i < items.length; i++) {
+          if (elmnt != items[i] && elmnt != inp) {
+            items[i].innerHTML = '';
+          }
+        }
+      }
+      document.addEventListener("click", function (e) { closeAllLists(e.target); });
+    }
+    autocomplete(document.getElementById('weatherCity'), 'autocomplete-list');
+
+    // Saved locations
+    function saveLocation() {
+      const city = document.getElementById('weatherCity').value.trim();
+      if (!city) return alert('Enter a location to save.');
+      let saved = JSON.parse(localStorage.getItem('savedLocations') || '[]');
+      if (!saved.includes(city)) {
+        saved.push(city);
+        localStorage.setItem('savedLocations', JSON.stringify(saved));
+        renderSavedLocations();
+      }
+    }
+    function renderSavedLocations() {
+      let saved = JSON.parse(localStorage.getItem('savedLocations') || '[]');
+      const container = document.getElementById('savedLocations');
+      if (!container) return;
+      if (!saved.length) {
+        container.innerHTML = "";
+        return;
+      }
+      container.innerHTML = saved.map(
+        loc => `<span class="saved-location-btn" onclick="getWeatherApp('${loc}')">${loc} <span class="remove-saved" onclick="event.stopPropagation();removeSavedLocation('${loc}')">&times;</span></span>`
+      ).join('');
+    }
+    function removeSavedLocation(loc) {
+      let saved = JSON.parse(localStorage.getItem('savedLocations') || '[]');
+      saved = saved.filter(l => l !== loc);
+      localStorage.setItem('savedLocations', JSON.stringify(saved));
+      renderSavedLocations();
+    }
+    window.addEventListener('DOMContentLoaded', renderSavedLocations);
+
+    // Main Weather App logic
+    document.getElementById('weatherAppSearch').onsubmit = function(e){
+      e.preventDefault();
+      getWeatherApp(document.getElementById('weatherCity').value.trim());
+    };
+    function getWeatherApp(city) {
+      if (!city) return;
+      const container = document.getElementById('weatherContent');
+      container.innerHTML = "<div style='margin:24px 0;text-align:center;'>Loading weather data...</div>";
+
+      // Fetch current weather + forecast + alerts
+      const currentURL = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`;
+      const forecastURL = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`;
+
+      Promise.all([
+        fetch(currentURL).then(r => r.json()),
+        fetch(forecastURL).then(r => r.json())
+      ])
+      .then(([current, forecast]) => {
+        if (current.cod != 200) {
+          container.innerHTML = '<div style="color:#b22; margin:30px 0;">Weather not found. Please check the name.</div>';
+          return;
+        }
+        // Current Card
+        let html = `<div class="home-card visible" style="margin-bottom:18px;">
+          <div style="display:flex;align-items:center;gap:18px;">
+            <img src="https://openweathermap.org/img/wn/${current.weather[0].icon}@2x.png" alt="" style="width:85px;">
+            <div>
+              <div style="font-size:2em;font-weight:bold;line-height:1.2;">${current.name}, ${current.sys.country}</div>
+              <div style="font-size:1.5em;color:#2c6e49;">${current.main.temp}&deg;C</div>
+              <div style="font-size:1.1em;color:#184b2e;">${current.weather[0].description}</div>
+            </div>
+          </div>
+          <div style="margin-top:12px;font-size:1.11em;">
+            <b>Humidity:</b> ${current.main.humidity}% &nbsp; | &nbsp; <b>Wind:</b> ${current.wind.speed} m/s &nbsp; | &nbsp; <b>Feels Like:</b> ${current.main.feels_like}&deg;C
+          </div>
+          <div style="margin-top:6px;font-size:1em;">Visibility: ${(current.visibility/1000).toFixed(1)} km</div>
+          <div style="margin-top:6px;font-size:1em;">Coordinates: ${current.coord.lat.toFixed(2)}, ${current.coord.lon.toFixed(2)}</div>
+          <div>
+            <button type="button" onclick="saveLocation()" style="margin-top:12px;">★ Save Location</button>
+          </div>
+        </div>`;
+
+        // 5-Day Forecast Cards
+        let forecastDays = {};
+        forecast.list.forEach(item => {
+          const date = item.dt_txt.split(' ')[0];
+          if (!forecastDays[date]) forecastDays[date] = [];
+          forecastDays[date].push(item);
+        });
+        let dayKeys = Object.keys(forecastDays).slice(0, 5);
+        html += `<div style="margin-bottom:10px;font-size:1.3em;font-weight:600;color:#2c6e49;">5-Day Forecast</div>`;
+        dayKeys.forEach((date, idx) => {
+          const day = forecastDays[date];
+          let tmin = Math.min(...day.map(d => d.main.temp_min));
+          let tmax = Math.max(...day.map(d => d.main.temp_max));
+          let humidityAvg = Math.round(day.reduce((a, d) => a + d.main.humidity, 0)/day.length);
+          let rainChance = day.filter(d => d.rain && d.rain['3h'] > 0).length / day.length * 100;
+          let rainAmount = Math.round(day.reduce((sum, d) => sum + (d.rain ? d.rain['3h'] || 0 : 0), 0));
+          let tempTrend = '';
+          if (idx > 0) {
+            let prevDay = forecastDays[dayKeys[idx-1]];
+            let prevAvg = prevDay.reduce((a,d)=>a+d.main.temp,0)/prevDay.length;
+            let thisAvg = day.reduce((a,d)=>a+d.main.temp,0)/day.length;
+            tempTrend = (thisAvg > prevAvg) ? '<span style="color:#c93;">Rise</span>' : (thisAvg < prevAvg ? '<span style="color:#16b;">Fall</span>' : 'Stable');
+          }
+          html += `
+          <div class="home-card visible" style="margin-bottom:14px;">
+            <div style="font-size:1.13em;font-weight:600;color:#25803c;">${(new Date(date)).toLocaleDateString(undefined, {weekday:'long', month:'short', day:'numeric'})}</div>
+            <div>
+              <b>Min/Max Temp:</b> ${tmin.toFixed(1)}&deg;C / ${tmax.toFixed(1)}&deg;C 
+              ${tempTrend ? '(<b>Trend:</b> '+tempTrend+')' : ''}
+            </div>
+            <div>
+              <b>Avg Humidity:</b> ${humidityAvg}% &nbsp; | &nbsp;
+              <b>Rain chance:</b> ${rainChance.toFixed(0)}% &nbsp; | &nbsp;
+              <b>Rainfall:</b> ${rainAmount} mm
+            </div>
+            <details style="margin-top:7px;">
+              <summary style="cursor:pointer;">Hourly</summary>
+              <div style="font-size:0.97em; color:#555; margin-top:4px;">
+                ${day.map(d =>
+                  `${d.dt_txt.substr(11,5)}: ${d.main.temp.toFixed(1)}&deg;C, ${d.weather[0].description}${d.rain && d.rain['3h'] ? `, 🌧 ${d.rain['3h']}mm` : ''}, H:${d.main.humidity}%`
+                ).join('<br>')}
+              </div>
+            </details>
+          </div>`;
+        });
+
+        // Alerts (One Call API)
+        if (forecast.city && forecast.city.coord) {
+          const oneCallUrl = `https://api.openweathermap.org/data/2.5/onecall?lat=${forecast.city.coord.lat}&lon=${forecast.city.coord.lon}&appid=${apiKey}&units=metric`;
+          fetch(oneCallUrl).then(r=>r.json()).then(oneCall=>{
+            let alertSection = '';
+            if (oneCall.alerts && oneCall.alerts.length > 0) {
+              alertSection = `<div class="home-card visible" style="border-left:6px solid #de6000; background:#ffe6cc;">
+                <h3 style="margin-top:0;">Local Weather Alerts</h3>
+                ${oneCall.alerts.map(alert=>`
+                  <div style="margin-bottom:10px;">
+                    <b>${alert.event}</b> (${new Date(alert.start*1000).toLocaleString()} - ${new Date(alert.end*1000).toLocaleString()})<br>
+                    <span style="color:#b22;">${alert.description}</span>
+                    <br><b>Source:</b> ${alert.sender_name}
+                  </div>
+                `).join('')}
+              </div>`;
+            } else {
+              alertSection = `<div class="home-card visible" style="background:#eafadf;">No official weather alerts at this time.</div>`;
+            }
+            container.innerHTML = html + alertSection;
+          });
+        } else {
+          container.innerHTML = html;
+        }
+      })
+      .catch(() => {
+        container.innerHTML = '<div style="color:#b22; margin:30px 0;">Failed to fetch weather data.</div>';
+      });
+    }
+
+    // Enquiry Form validation and submission
+    function validateForm(formId) {
+      const form = document.getElementById(formId);
+      const name = form.name.value.trim();
+      const email = form.email.value.trim();
+      const phone = form.phone.value.trim();
+      const type = form.type.value;
+      const product = form.product.value;
+      if (!name) {alert('Please enter your full name.'); form.name.focus(); return false;}
+      if (!email) {alert('Please enter your email address.'); form.email.focus(); return false;}
+      const emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,15}$/;
+      if (!emailPattern.test(email)) {alert('Please enter a valid email address.'); form.email.focus(); return false;}
+      if (!phone) {alert('Please enter your contact number.'); form.phone.focus(); return false;}
+      if (!type) {alert('Please select Farmer or Buyer.'); form.type.focus(); return false;}
+      if (!product) {alert('Please select product interest.'); form.product.focus(); return false;}
+      return true;
+    }
+    function submitForm(formId) {
+      if(validateForm(formId)) {
+        alert('Thank you for your enquiry! We will contact you shortly.');
+        document.getElementById(formId).reset();
+      }
+      return false;
+    }
+  </script>
+</body>
+</html>
